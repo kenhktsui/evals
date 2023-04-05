@@ -5,7 +5,7 @@ evals and most development work should not require familiarity with this file.
 import base64
 import datetime
 import os
-from typing import TYPE_CHECKING, Any, Dict, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Dict, Mapping, Optional, Sequence, Literal
 
 if TYPE_CHECKING:
     from dataclasses import dataclass
@@ -37,6 +37,10 @@ class ModelSpec:
     format: Optional[str] = None
     key: Optional[str] = None
     group: Optional[str] = None
+
+    inference_framework: Literal["openai", "huggingface", "xturing"] = "openai"
+    port: Optional[int] = None
+    stop_token: Optional[str] = None
 
     def __post_init__(self):
         if self.extra_options is None:

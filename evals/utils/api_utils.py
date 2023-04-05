@@ -3,8 +3,10 @@ This file defines various helper functions for interacting with the OpenAI API.
 """
 import logging
 
+import json
 import backoff
 import openai
+import httpx
 
 
 def generate_dummy_chat_completion():
@@ -93,4 +95,69 @@ def openai_chat_completion_create_retrying(*args, **kwargs):
     if "error" in result:
         logging.warning(result)
         raise openai.error.APIError(result["error"])
+    return result
+
+
+@backoff.on_exception(
+    wait_gen=backoff.expo,
+    exception=(
+        httpx.RequestError
+    ),
+    max_value=60,
+    factor=1.5,
+)
+def xturing_completion_create_retrying(*args, **kwargs):
+    """
+    Helper function for creating a completion.
+    `args` and `kwargs` match what is accepted by `openai.Completion.create`.
+    """
+    data = {
+      "prompt": [kwargs["prompt"]],
+      "params": {
+        "penalty_alpha": 0.6,
+        "top_k": 1.0,
+        "top_p": 0.92,
+        "do_sample": False,
+        "max_new_tokens": 256,
+        "temperature": 0.0,
+      }
+    }
+    result = httpx.post(f'http://localhost:{kwargs["port"]}/api', data=data)
+    result.raise_for_status()
+    result = json.loads(result.text)
+    if not result["success"]:
+        logging.warning(result)
+        raise httpx.RequestError
+
+    res = result.pop("response")[0]
+    result["choices"] = [res]
+    return result
+
+
+@backoff.on_exception(
+    wait_gen=backoff.expo,
+    exception=(
+        httpx.RequestError
+    ),
+    max_value=60,
+    factor=1.5,
+)
+def huggingface_completion_create_retrying(*args, **kwargs):
+    """
+    Helper function for creating a completion.
+    `args` and `kwargs` match what is accepted by `openai.Completion.create`.
+    """
+    data = {
+      "prompt": kwargs["prompt"],
+      "max_tokens": int,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "top_k": 50,
+      "stop": kwargs.get("stop_token", "\n"),
+      "penalty_alpha": None,
+      "repetition_penalty": 1.0,
+    }
+    result = httpx.post(f'http://localhost:{kwargs["port"]}/completions', data=data)
+    result.raise_for_status()
+    result = json.loads(result.text)
     return result

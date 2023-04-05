@@ -1,3 +1,19 @@
+# Modification from OAI Evals
+This support evaluation of huggingface or xturing model deployed in local server.
+```shell
+# install this fork
+pip install -e .
+
+# deploy model to local server
+python huggingface_app.py [HF_MODEL_NAME] --port [PORT]
+
+# run an eval
+localeval [HF_MODEL_NAME] huggingface [PORT] test-match
+
+# run an eval set
+localevalset [HF_MODEL_NAME] huggingface [PORT] test
+```
+
 # Evals
 
 Evals is a framework for evaluating OpenAI models and an open-source registry of benchmarks.

@@ -18,6 +18,8 @@ from evals.record import record_match, record_sampling
 from evals.utils.api_utils import (
     openai_chat_completion_create_retrying,
     openai_completion_create_retrying,
+    huggingface_completion_create_retrying,
+    xturing_completion_create_retrying
 )
 
 logger = logging.getLogger(__name__)
@@ -64,33 +66,46 @@ def completion_query(
                 raw_prompt=prompt,
             )
 
-    openai_create_prompt: Union[
-        OpenAICreatePrompt, OpenAICreateChatPrompt
-    ] = prompt.to_openai_create_prompt()
+    if model_spec.inference_framework == "openai":
+        prompt: Union[
+            OpenAICreatePrompt, OpenAICreateChatPrompt
+        ] = prompt.to_openai_create_prompt()
+    elif model_spec.inference_framework == "xturing":
+        prompt = prompt.to_xturing_create_prompt()
+    elif model_spec.inference_framework == "huggingface":
+        prompt = prompt.to_huggingface_create_prompt()
 
     extra_args = {
         key: model_spec.extra_options.get(key, kwargs.get(key))
         for key in set(kwargs) | set(model_spec.extra_options)
     }
 
-    if model_spec.is_chat:
-        result = openai_chat_completion_create_retrying(
-            model=model_spec.model,
-            engine=model_spec.engine,
-            api_base=model_spec.api_base,
-            api_key=model_spec.api_key,
-            messages=openai_create_prompt,
-            **extra_args,
-        )
-    else:
-        result = openai_completion_create_retrying(
-            model=model_spec.model,
-            engine=model_spec.engine,
-            api_base=model_spec.api_base,
-            api_key=model_spec.api_key,
-            prompt=openai_create_prompt,
-            **extra_args,
-        )
+    if model_spec.inference_framework == "openai":
+        if model_spec.is_chat:
+            result = openai_chat_completion_create_retrying(
+                model=model_spec.model,
+                engine=model_spec.engine,
+                api_base=model_spec.api_base,
+                api_key=model_spec.api_key,
+                messages=prompt,
+                **extra_args,
+            )
+        else:
+            result = openai_completion_create_retrying(
+                model=model_spec.model,
+                engine=model_spec.engine,
+                api_base=model_spec.api_base,
+                api_key=model_spec.api_key,
+                prompt=prompt,
+                **extra_args,
+            )
+    elif model_spec.inference_framework == "huggingface":
+        result = huggingface_completion_create_retrying(port=model_spec.port,
+                                                        prompt=prompt,
+                                                        stop_token=model_spec.stop_token)
+    elif model_spec.inference_framework == "xturing":
+        result = xturing_completion_create_retrying(port=model_spec.port,
+                                                    prompt=prompt)
 
     metadata = {}
     if result:
@@ -101,7 +116,7 @@ def completion_query(
             for choice in result["choices"]:
                 choice["text"] = choice["message"]["content"]
 
-    return result, openai_create_prompt, metadata
+    return result, prompt, metadata
 
 
 def check_sampled_text(

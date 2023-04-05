@@ -29,3 +29,5 @@ dependencies = [
 [project.scripts]
 oaieval = "evals.cli.oaieval:main"
 oaievalset = "evals.cli.oaievalset:main"
+localeval = "evals.cli.localeval:main"
+localevalset = "evals.cli.localevalset:main"
