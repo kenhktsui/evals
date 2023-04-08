@@ -120,7 +120,7 @@ def run(args, registry: Optional[Registry] = None):
         created_by=args.user,
     )
     if args.record_path is None:
-        record_path = f"/tmp/evallogs/{run_spec.run_id}_{args.model}_{args.eval}.jsonl"
+        record_path = f"/tmp/evallogs/{run_spec.run_id}_{args.name}_{args.eval}.jsonl"
     else:
         record_path = args.record_path
     if args.dry_run:
