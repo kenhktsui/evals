@@ -122,7 +122,9 @@ def xturing_completion_create_retrying(*args, **kwargs):
         "temperature": 0.0,
       }
     }
-    result = httpx.post(f'http://localhost:{kwargs["port"]}/api', data=data)
+    result = httpx.post(f'http://localhost:{kwargs["port"]}/api',
+                        data=json.dumps(data),
+                        headers={'Content-type': 'application/json'})
     result.raise_for_status()
     result = json.loads(result.text)
     if not result["success"]:
@@ -157,7 +159,9 @@ def huggingface_completion_create_retrying(*args, **kwargs):
       "penalty_alpha": None,
       "repetition_penalty": 1.0,
     }
-    result = httpx.post(f'http://localhost:{kwargs["port"]}/completions', data=data)
+    result = httpx.post(f'http://localhost:{kwargs["port"]}/completions',
+                        data=json.dumps(data),
+                        headers={'Content-type': 'application/json'})
     result.raise_for_status()
     result = json.loads(result.text)
     return result
