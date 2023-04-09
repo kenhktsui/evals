@@ -10,10 +10,10 @@ pip install -e .
 python huggingface_app.py [HF_MODEL_NAME] --port [PORT] --user_prefix [USER_PREFIX] --assistant_prefix [ASST_PREFIX] --eos_token [EOS_TOKEN]
 
 # run an eval
-localeval [HF_MODEL_NAME] huggingface [PORT] test-match
+localeval [HF_MODEL_NAME] huggingface [PORT] test-match --is_chat
 
 # run an eval set
-localevalset [HF_MODEL_NAME] huggingface [PORT] test
+localevalset [HF_MODEL_NAME] huggingface [PORT] test --is_chat
 ```
 
 # Evals

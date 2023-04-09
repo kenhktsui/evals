@@ -7,6 +7,7 @@ import json
 import backoff
 import openai
 import httpx
+from httpx import TimeoutException
 
 
 def generate_dummy_chat_completion():
@@ -139,10 +140,11 @@ def xturing_completion_create_retrying(*args, **kwargs):
 @backoff.on_exception(
     wait_gen=backoff.expo,
     exception=(
-        httpx.RequestError
+        TimeoutException
     ),
-    max_value=60,
+    max_tries=3,
     factor=1.5,
+    max_time=300
 )
 def huggingface_completion_create_retrying(*args, **kwargs):
     """
@@ -160,7 +162,8 @@ def huggingface_completion_create_retrying(*args, **kwargs):
     }
     result = httpx.post(f'http://localhost:{kwargs["port"]}/completions',
                         data=json.dumps(data),
-                        headers={'Content-type': 'application/json'})
+                        headers={'Content-type': 'application/json'},
+                        timeout=120.0)
     result.raise_for_status()
     result = json.loads(result.text)
     return result
@@ -169,10 +172,11 @@ def huggingface_completion_create_retrying(*args, **kwargs):
 @backoff.on_exception(
     wait_gen=backoff.expo,
     exception=(
-        httpx.RequestError
+        TimeoutException
     ),
-    max_value=60,
+    max_tries=3,
     factor=1.5,
+    max_time=300
 )
 def huggingface_chat_completion_create_retrying(*args, **kwargs):
     """
@@ -190,7 +194,8 @@ def huggingface_chat_completion_create_retrying(*args, **kwargs):
     }
     result = httpx.post(f'http://localhost:{kwargs["port"]}/chat/completions',
                         data=json.dumps(data),
-                        headers={'Content-type': 'application/json'})
+                        headers={'Content-type': 'application/json'},
+                        timeout=120.0)
     result.raise_for_status()
     result = json.loads(result.text)
     return result

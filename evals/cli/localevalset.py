@@ -68,7 +68,7 @@ def run(args, unknown_args, registry: Optional[Registry] = None) -> None:
     commands: list[Task] = []
     eval_set = registry.get_eval_set(args.eval_set)
     for eval in registry.get_evals(eval_set.evals):
-        command = ["localeval", args.model, args.inference_framework, args.port, eval.key] + unknown_args
+        command = ["localeval", args.model, args.inference_framework, str(args.port), eval.key] + unknown_args
         if command in commands:
             continue
         commands.append(command)

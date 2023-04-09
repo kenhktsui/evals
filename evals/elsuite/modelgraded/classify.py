@@ -66,7 +66,8 @@ class ModelBasedClassify(evals.Eval):
                 self.multicomp_n == n_models
             ), f"multicomp_n={self.multicomp_n} must be equal to the number of models={len(self.model_specs.completions)} if multiple models are specified."
 
-        if self.model_spec.name == "dummy-completion" or self.model_spec.name == "dummy-chat":
+        if (self.model_spec.name == "dummy-completion" or self.model_spec.name == "dummy-chat" or
+                self.model_spec.inference_framework != "openai"):
             self.eval_modelspec = self.model_spec
         else:
             self.eval_modelspec = ModelSpec(name=eval_model, model=eval_model, is_chat=True)
