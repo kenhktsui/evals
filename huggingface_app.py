@@ -74,9 +74,9 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser("Fast API for huggingface CausalLM models")
     parser.add_argument("model_name")
-    parser.add_argument("--user_prefix", type=str, default=5000)
-    parser.add_argument("--assistant_prefix", type=str, default=5000)
-    parser.add_argument("--eos_token", type=str, default=5000)
+    parser.add_argument("--user_prefix", type=str, default="User: ")
+    parser.add_argument("--assistant_prefix", type=str, default="Assistant: ")
+    parser.add_argument("--eos_token", type=str, default="\n")
     parser.add_argument("--port", type=int, default=5000)
     args = parser.parse_args()
 
