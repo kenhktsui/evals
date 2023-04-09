@@ -1,9 +1,11 @@
 # Modification from OAI Evals
-This support evaluation of huggingface or xturing model deployed in local server.
+It supports evaluation of huggingface model deployed in local server.
 ```shell
 # install this fork
 pip install -e .
 
+# install dependencies to run local server
+!pip install transformers uvicorn fastapi
 # deploy model to local server
 python huggingface_app.py [HF_MODEL_NAME] --port [PORT] --user_prefix [USER_PREFIX] --assistant_prefix [ASST_PREFIX] --eos_token [EOS_TOKEN]
 
