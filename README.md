@@ -5,7 +5,7 @@ This support evaluation of huggingface or xturing model deployed in local server
 pip install -e .
 
 # deploy model to local server
-python huggingface_app.py [HF_MODEL_NAME] --port [PORT]
+python huggingface_app.py [HF_MODEL_NAME] --port [PORT] --user_prefix [USER_PREFIX] --assistant_prefix [ASST_PREFIX] --eos_token [EOS_TOKEN]
 
 # run an eval
 localeval [HF_MODEL_NAME] huggingface [PORT] test-match
