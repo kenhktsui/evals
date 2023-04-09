@@ -151,15 +151,44 @@ def huggingface_completion_create_retrying(*args, **kwargs):
     """
     data = {
       "prompt": kwargs["prompt"],
-      "max_tokens": int,
+      "max_tokens": 256,
       "temperature": 1.0,
       "top_p": 1.0,
       "top_k": 50,
-      "stop": kwargs.get("stop_token", "\n"),
       "penalty_alpha": None,
       "repetition_penalty": 1.0,
     }
     result = httpx.post(f'http://localhost:{kwargs["port"]}/completions',
+                        data=json.dumps(data),
+                        headers={'Content-type': 'application/json'})
+    result.raise_for_status()
+    result = json.loads(result.text)
+    return result
+
+
+@backoff.on_exception(
+    wait_gen=backoff.expo,
+    exception=(
+        httpx.RequestError
+    ),
+    max_value=60,
+    factor=1.5,
+)
+def huggingface_chat_completion_create_retrying(*args, **kwargs):
+    """
+    Helper function for creating a completion.
+    `args` and `kwargs` match what is accepted by `openai.Completion.create`.
+    """
+    data = {
+      "messages": kwargs["messages"],
+      "max_tokens": 256,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "top_k": 50,
+      "penalty_alpha": None,
+      "repetition_penalty": 1.0,
+    }
+    result = httpx.post(f'http://localhost:{kwargs["port"]}/chat/completions',
                         data=json.dumps(data),
                         headers={'Content-type': 'application/json'})
     result.raise_for_status()

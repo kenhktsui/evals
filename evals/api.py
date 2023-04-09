@@ -18,6 +18,7 @@ from evals.record import record_match, record_sampling
 from evals.utils.api_utils import (
     openai_chat_completion_create_retrying,
     openai_completion_create_retrying,
+    huggingface_chat_completion_create_retrying,
     huggingface_completion_create_retrying,
     xturing_completion_create_retrying
 )
@@ -100,9 +101,12 @@ def completion_query(
                 **extra_args,
             )
     elif model_spec.inference_framework == "huggingface":
-        result = huggingface_completion_create_retrying(port=model_spec.port,
-                                                        prompt=prompt,
-                                                        stop_token=model_spec.stop_token)
+        if model_spec.is_chat:
+            result = huggingface_chat_completion_create_retrying(port=model_spec.port,
+                                                                 messages=prompt)
+        else:
+            result = huggingface_completion_create_retrying(port=model_spec.port,
+                                                            prompt=prompt)
     elif model_spec.inference_framework == "xturing":
         result = xturing_completion_create_retrying(port=model_spec.port,
                                                     prompt=prompt)

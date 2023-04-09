@@ -120,7 +120,11 @@ class ChatCompletionPrompt(Prompt):
         return self._render_text_as_chat_prompt(self.raw_prompt)
 
     def to_xturing_create_prompt(self) -> OpenAICreatePrompt:
-        return self.raw_prompt
+        if is_chat_prompt(self.raw_prompt):
+            return self.raw_prompt
+        return text_prompt_to_chat_prompt(self.raw_prompt, role="user")
 
     def to_huggingface_create_prompt(self) -> OpenAICreatePrompt:
-        return self.raw_prompt
+        if is_chat_prompt(self.raw_prompt):
+            return self.raw_prompt
+        return text_prompt_to_chat_prompt(self.raw_prompt, role="user")

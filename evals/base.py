@@ -40,7 +40,6 @@ class ModelSpec:
 
     inference_framework: Literal["openai", "huggingface", "xturing"] = "openai"
     port: Optional[int] = None
-    stop_token: Optional[str] = None
 
     def __post_init__(self):
         if self.extra_options is None:
