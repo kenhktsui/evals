@@ -78,13 +78,15 @@ if __name__ == "__main__":
     parser.add_argument("--assistant_prefix", type=str, default="Assistant: ")
     parser.add_argument("--eos_token", type=str, default="\n")
     parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--load_8bit", action="store_true")
     args = parser.parse_args()
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForCausalLM.from_pretrained(args.model_name,
-                                                 torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32)
-    if torch.cuda.is_available():
-        model.to("cuda:0")
+                                                 device_map="auto" if torch.cuda.is_available() else None,
+                                                 torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float32,
+                                                 load_in_8bit=args.load_8bit
+                                                 ).eval()
 
     app = FastAPI()
 
@@ -95,21 +97,23 @@ if __name__ == "__main__":
     @app.post("/completions")
     def completions(request: CompletionRequest):
         encoded_input = tokenizer(request.prompt, return_tensors='pt')
-        result = model.generate(
-            input_ids=encoded_input['input_ids'].cuda(0) if torch.cuda.is_available() else encoded_input['input_ids'],
-            do_sample=True,
-            max_new_tokens=request.max_tokens,
-            num_return_sequences=1,
-            top_p=request.top_p,
-            temperature=request.temperature,
-            penalty_alpha=request.penalty_alpha,
-            top_k=request.top_k,
-            output_scores=False,
-            return_dict_in_generate=False,
-            repetition_penalty=request.repetition_penalty,
-            eos_token_id=tokenizer.convert_tokens_to_ids(args.eos_token),
-            use_cache=True
-        )
+        with torch.no_grad():
+            result = model.generate(
+                input_ids=encoded_input['input_ids'].cuda(0) if torch.cuda.is_available() else encoded_input['input_ids'],
+                do_sample=True,
+                max_new_tokens=request.max_tokens,
+                num_return_sequences=1,
+                top_p=request.top_p,
+                temperature=request.temperature,
+                penalty_alpha=request.penalty_alpha,
+                top_k=request.top_k,
+                output_scores=False,
+                return_dict_in_generate=False,
+                repetition_penalty=request.repetition_penalty,
+                eos_token_id=tokenizer.convert_tokens_to_ids(args.eos_token),
+                use_cache=True
+            )
+        result = result.cpu()
         result = tokenizer.decode(result[0], skip_special_tokens=True)
         return {
             "id": str(uuid.uuid4()),
@@ -131,21 +135,23 @@ if __name__ == "__main__":
                                          args.assistant_prefix,
                                          args.eos_token)
         encoded_input = tokenizer(prompt, return_tensors='pt')
-        result = model.generate(
-            input_ids=encoded_input['input_ids'].cuda(0) if torch.cuda.is_available() else encoded_input['input_ids'],
-            do_sample=True,
-            max_new_tokens=request.max_tokens,
-            num_return_sequences=1,
-            top_p=request.top_p,
-            temperature=request.temperature,
-            penalty_alpha=request.penalty_alpha,
-            top_k=request.top_k,
-            output_scores=False,
-            return_dict_in_generate=False,
-            repetition_penalty=request.repetition_penalty,
-            eos_token_id=tokenizer.convert_tokens_to_ids(args.eos_token),
-            use_cache=True
-        )
+        with torch.no_grad():
+            result = model.generate(
+                input_ids=encoded_input['input_ids'].cuda(0) if torch.cuda.is_available() else encoded_input['input_ids'],
+                do_sample=True,
+                max_new_tokens=request.max_tokens,
+                num_return_sequences=1,
+                top_p=request.top_p,
+                temperature=request.temperature,
+                penalty_alpha=request.penalty_alpha,
+                top_k=request.top_k,
+                output_scores=False,
+                return_dict_in_generate=False,
+                repetition_penalty=request.repetition_penalty,
+                eos_token_id=tokenizer.convert_tokens_to_ids(args.eos_token),
+                use_cache=True
+            )
+        result = result.cpu()
         result = tokenizer.decode(result[0], skip_special_tokens=True)
 
         return {
